@@ -7,7 +7,7 @@ bundle:
 # Landing data stays outside the bundle; only source code is deployed.
 sync:
   exclude:
-    - data/
+    - ./data/**
     - README.me
 
 variables:
@@ -20,7 +20,7 @@ variables:
 
 targets:
   dev:
-    description: Personal development deployment
+    mode: development
     default: true
 
 resources:
@@ -32,22 +32,20 @@ resources:
       # (main.retail_bronze / main.retail_silver / main.retail_gold)
       catalog: ${var.catalog}
 
-      # Include only the pipeline sources; the SQL files under
-      # 00_setup and the bronze .sql copy are setup scripts,
-      # not pipeline code, and would break the update if loaded.
+      # Explicit file libraries: the SQL files under 00_setup and
+      # 01_bronze are setup scripts, not pipeline code, and would
+      # break the update if loaded as pipeline sources.
       libraries:
-        - glob:
-            include:
-              - src/01_bronze/**
-              - src/02_silver/**
-              - src/03_gold/**
-            exclude:
-              - src/01_bronze/orders_bronze.sql
+        - file:
+            path: src/01_bronze/orders_bronze.py
+        - file:
+            path: src/02_silver/orders_silver.py
+        - file:
+            path: src/03_gold/daily_sales.py
 
       serverless: true
       photon: true
       channel: current
-      development: true
 
       permissions:
         - level: CAN_VIEW
